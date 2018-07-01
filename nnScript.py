@@ -266,10 +266,10 @@ def nnObjFunction(params, *args):
     djw2 = np.matmul((out - yl).T, z)
 
     w2_no_hidden = np.delete(w2, len(w2[0]) - 1, 1)
-    mat_1 = np.matmul((1 - z_no_hidden).T, z_no_hidden)
+    mat_1 = np.multiply((1 - z_no_hidden), z_no_hidden)
     delta_x_w1 = np.matmul((out - yl), w2_no_hidden)
-    mat_1_x_mat_2 = np.matmul(mat_1, delta_x_w1.T)
-    djw1 = np.matmul(mat_1_x_mat_2, np.hstack((training_data,np.ones((training_data.shape[0],1)))))
+    mat_1_x_mat_2 = np.multiply(mat_1, delta_x_w1)
+    djw1 = np.matmul(mat_1_x_mat_2.T, np.hstack((training_data,np.ones((training_data.shape[0],1)))))
 
     # regularization:
 
@@ -277,10 +277,10 @@ def nnObjFunction(params, *args):
 
     reg_djw1 = (1 / n) * (djw1 + lambdaval * w1)
     # print("regularizations: ", reg_djw1, reg_djw2)
-    print("regularizations complete")
     reg_djw1.flatten()
     obj_grad = np.concatenate((reg_djw1.flatten(), reg_djw2.flatten()), 0) 
     
+    # print("regularizations complete, obj_val:", obj_val, "gradient w1: ", reg_djw1, "gradient w2: ", reg_djw2)
     # print(djw1, djw2)
 
     #
