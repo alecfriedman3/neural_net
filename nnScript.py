@@ -215,7 +215,8 @@ def nnObjFunction(params, *args):
     z = []
     z_no_hidden = []
     for image in training_data:
-        z_i = sigmoid(feedForwardSummation(w1, np.append(image, 1)))
+        # z_i = sigmoid(feedForwardSummation(w1, np.append(image, 1)))
+        z_i = sigmoid(np.dot(w1, np.append(image, 1)))
         # add hiden bias
         # print("zi value here before bias: ", z_i)
         z_no_hidden.append(z_i)
@@ -228,7 +229,8 @@ def nnObjFunction(params, *args):
 
     out = []
     for node in z:
-        out_j = sigmoid(feedForwardSummation(w2, node))
+        # out_j = sigmoid(feedForwardSummation(w2, node))
+        out_j = sigmoid(np.dot(w2, node))
         out.append(out_j)
     out = np.array(out)
     print("output values: ", out)
@@ -311,8 +313,8 @@ def nnPredict(w1, w2, data):
     labels = np.array([])
     # Your code here
     for image in data:
-        z = sigmoid(feedForwardSummation(w1, np.append(image, 1)))
-        prediction_labels = sigmoid(feedForwardSummation(w2, np.append(z, 1)))
+        z = sigmoid(np.dot(w1, np.append(image, 1)))
+        prediction_labels = sigmoid(np.dot(w2, np.append(z, 1)))
         # prediction_labels = feedForwardPropogation(w1, w2, image)
         # print("PREDICTION----------------------------------------------------\n\n", prediction_labels, "\n\n")
         labels = np.append(labels, np.argmax(prediction_labels) + 1)
