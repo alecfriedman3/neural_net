@@ -24,13 +24,13 @@ def initializeWeights(n_in, n_out):
 def sigmoid(z):
     """# Notice that z can be a scalar, a vector or a matrix
     # return the sigmoid of input z"""
-    if isinstance(z, int) or isinstance(z, float):
-        return 1 / (1 + exp(-z))
-    Z = z[:]
-    for y in range(0,len(z)):
-        Z[y] = sigmoid(z[y])
-    return Z
-    # return 1.0 / (1.0 + np.exp(-1.0 * z))
+    # if isinstance(z, int) or isinstance(z, float):
+    #     return 1 / (1 + exp(-z))
+    # Z = z[:]
+    # for y in range(0,len(z)):
+    #     Z[y] = sigmoid(z[y])
+    # return Z
+    return 1.0 / (1.0 + np.exp(-1 * z))
 
 def preprocess():
     """ Input:
@@ -227,7 +227,7 @@ def nnObjFunction(params, *args):
 
 
     # error function objective val
-    for i, y_i in enumerate(training_label):
+    for i, y_i in enumerate(yl):
         for l, y_i_l in enumerate(y_i):
             # (yil ln oil + (1 − yil) ln(1 − oil))
             obj_val += y_i_l * np.log(out[i][l]) + (1 - y_i_l) * np.log(1 - out[i][l])
