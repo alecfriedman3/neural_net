@@ -24,13 +24,13 @@ def initializeWeights(n_in, n_out):
 def sigmoid(z):
     """# Notice that z can be a scalar, a vector or a matrix
     # return the sigmoid of input z"""
-    if isinstance(z, int) or isinstance(z, float):
-        return 1 / (1 + exp(-z))
-    Z = z[:]
-    for y in range(0,len(z)):
-        Z[y] = sigmoid(z[y])
-    return Z
-    # return 1.0 / (1.0 + np.exp(-1 * z))
+    # if isinstance(z, int) or isinstance(z, float):
+    #     return 1 / (1 + exp(-z))
+    # Z = z[:]
+    # for y in range(0,len(z)):
+    #     Z[y] = sigmoid(z[y])
+    # return Z
+    return 1.0 / (1.0 + np.exp(-z))
 
 def preprocess():
     """ Input:
@@ -149,7 +149,7 @@ def preprocess():
 
     return train_data, train_label, validation_data, validation_label, test_data, test_label
 
-
+iteration = 0
 def nnObjFunction(params, *args):
     """% nnObjFunction computes the value of objective function (negative log 
     %   likelihood error function with regularization) given the parameters 
@@ -187,6 +187,9 @@ def nnObjFunction(params, *args):
     % w2: matrix of weights of connections from hidden layer to output layers.
     %     w2(i, j) represents the weight of connection from unit j in hidden 
     %     layer to unit i in output layer."""
+    global iteration
+    print("iteration: ", iteration)
+    iteration += 1
 
     n_input, n_hidden, n_class, training_data, training_label, lambdaval = args
 
@@ -195,8 +198,8 @@ def nnObjFunction(params, *args):
     obj_val = 0
 
     # Your code here
-    print("running nnobjfunc with weights: \n\nlenghts = ",len(w1),len(w2), len(w1[0]), len(w2[0]),"\n\nw1 = ", w1,"\n\nw2 = ", w2)
-    print(training_label)
+    # print("running nnobjfunc with weights: \n\nlenghts = ",len(w1),len(w2), len(w1[0]), len(w2[0]),"\n\nw1 = ", w1,"\n\nw2 = ", w2)
+    # print(training_label)
 
     yl = []
     for l in training_label:
@@ -225,7 +228,8 @@ def nnObjFunction(params, *args):
         z.append(z_i)
     z = np.array(z)
     z_no_hidden = np.array(z_no_hidden)
-    print("hidden node values: ", z)
+    # print("hidden node values: ", z)
+    print("hidden node values complete")
 
     out = []
     for node in z:
@@ -233,7 +237,8 @@ def nnObjFunction(params, *args):
         out_j = sigmoid(np.dot(w2, node))
         out.append(out_j)
     out = np.array(out)
-    print("output values: ", out)
+    # print("output values: ", out)
+    print("output values complete")
 
 
     # error function objective val
@@ -271,11 +276,12 @@ def nnObjFunction(params, *args):
     reg_djw2 = (1 / n) * (djw2 + lambdaval * w2)
 
     reg_djw1 = (1 / n) * (djw1 + lambdaval * w1)
-    print("regularizations: ", reg_djw1, reg_djw2)
+    # print("regularizations: ", reg_djw1, reg_djw2)
+    print("regularizations complete")
     reg_djw1.flatten()
     obj_grad = np.concatenate((reg_djw1.flatten(), reg_djw2.flatten()), 0) 
     
-    print(djw1, djw2)
+    # print(djw1, djw2)
 
     #
     #
