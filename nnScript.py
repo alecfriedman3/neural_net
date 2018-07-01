@@ -196,21 +196,72 @@ def nnObjFunction(params, *args):
 
     # Your code here
     print("running nnobjfunc with weights: \n\nlenghts = ",len(w1),len(w2), len(w1[0]), len(w2[0]),"\n\nw1 = ", w1,"\n\nw2 = ", w2)
+    print(training_label)
+
+    yl = []
+    for l in training_label:
+        y = np.zeros(10)
+        y[int(l)] = 1
+        yl.append(y)
+    yl = np.array(yl)
+
+    n = len(yl)
 
     # for image in training_data:
     # print("labels should be:", training_label)
     # prediction = nnPredict(w1, w2, training_data)
     # print("PREDICTION, THIS JUST IN!", prediction)
-
+    z = []
     for i, image in enumerate(training_data):
-        print("training data point ", i)
-        proper_label = training_label[i]
-        prediction_labels_i = feedForwardPropogation(w1, w2, image)
-        prediction = np.argmax(prediction_labels_i) + 1
-        if proper_label != prediction:
-            print("we got a runner over here, expected ", proper_label, " was ", prediction)
-        elif proper_label == prediction:
-            print("all clear. index", i)
+        z_i = sigmoid(feedForwardSummation(w1, np.append(image, 1)))
+        # add hiden bias
+        z_i = np.append(z_i, 1)
+        z.append(z_i)
+    z = np.array(z)
+
+    out = []
+    for j, node in enumerate(z):
+        out_j = sigmoid(feedForwardSummation(w2, node))
+        out.append(out_j)
+    out = np.array(out)
+
+
+    # error function objective val
+    for i, y_i in enumerate(training_label):
+        for l, y_i_l in enumerate(y_i):
+            # (yil ln oil + (1 − yil) ln(1 − oil))
+            obj_val += y_i_l * np.log(out[i][l]) + (1 - y_i_l) * np.log(1 - out[i][l])
+
+    obj_val = (-1 / n) * obj_val
+    # regularization objective val
+    reg_obj_val = 0
+    for w1j in w1:
+        for w1jp in w1j:
+            reg_obj_val += w1jp ** 2
+    for w2l in w2:
+        for w2lj in w2l:
+            reg_obj_val += w2lj ** 2
+    reg_obj_val = ( lambdaval / (2 * n) ) * reg_obj_val
+
+    obj_val += reg_obj_val
+    
+
+    # Gradient descent:
+
+    djw2 = np.matmul((out - yl).T, z)
+
+    djw1 = np.matmul(np.matmul(np.matmul((1 - z).T, z).T, np.matmul((out - yl).T, w2)).T, training_data)
+
+    # regularization:
+
+    reg_djw2 = (1 / n) * (djw2 + lambdaval * w2)
+
+    reg_djw1 = (1 / n) * (djw1 + lambdaval * w1)
+
+    obj_grad = np.concatenate(reg_djw1.flatten(), reg_djw2.flatten(), 0)
+    
+    print(djw1, djw2)
+
     #
     #
     #
@@ -222,7 +273,7 @@ def nnObjFunction(params, *args):
     # Make sure you reshape the gradient matrices to a 1D array. for instance if your gradient matrices are grad_w1 and grad_w2
     # you would use code similar to the one below to create a flat array
     # obj_grad = np.concatenate((grad_w1.flatten(), grad_w2.flatten()),0)
-    obj_grad = np.array([])
+    # obj_grad = np.array([])
 
     return (obj_val, obj_grad)
 
@@ -247,24 +298,26 @@ def nnPredict(w1, w2, data):
     labels = np.array([])
     # Your code here
     for image in data:
-        prediction_labels = feedForwardPropogation(w1, w2, image)
+        z = sigmoid(feedForwardSummation(w1, np.append(image, 1)))
+        prediction_labels = sigmoid(feedForwardSummation(w2, np.append(z, 1)))
+        # prediction_labels = feedForwardPropogation(w1, w2, image)
         # print("PREDICTION----------------------------------------------------\n\n", prediction_labels, "\n\n")
         labels = np.append(labels, np.argmax(prediction_labels) + 1)
         # print("LABELS SO FAR!", labels)
 
     return labels
 
-def feedForwardPropogation(w1, w2, image):
-    def feedForwardSummation(weight, input_vector):
-        a = [0] * (len(weight))
-        for i, weight_i_vector in enumerate(weight):
-            weight_i_vector = weight[i]
-            for j, weight_i_j in enumerate(weight_i_vector):
-                a[i] += weight_i_j * input_vector[j]
-        return a
-    z = sigmoid(feedForwardSummation(w1, np.append(image, 1)))
-    labels = sigmoid(feedForwardSummation(w2, np.append(z, 1)))
-    return labels
+# def feedForwardPropogation(w1, w2, image):
+#     z = sigmoid(feedForwardSummation(w1, np.append(image, 1)))
+#     labels = sigmoid(feedForwardSummation(w2, np.append(z, 1)))
+#     return labels
+
+def feedForwardSummation(weight, input_vector):
+    a = [0] * (len(weight))
+    for i, weight_i_vector in enumerate(weight):
+        for j, weight_i_j in enumerate(weight_i_vector):
+            a[i] += weight_i_j * input_vector[j]
+    return a
 
 """**************Neural Network Script Starts here********************************"""
 
