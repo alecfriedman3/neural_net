@@ -24,13 +24,13 @@ def initializeWeights(n_in, n_out):
 def sigmoid(z):
     """# Notice that z can be a scalar, a vector or a matrix
     # return the sigmoid of input z"""
-    # if isinstance(z, int) or isinstance(z, float):
-    #     return 1 / (1 + exp(-z))
-    # Z = z[:]
-    # for y in range(0,len(z)):
-    #     Z[y] = sigmoid(z[y])
-    # return Z
-    return 1.0 / (1.0 + np.exp(-1 * z))
+    if isinstance(z, int) or isinstance(z, float):
+        return 1 / (1 + exp(-z))
+    Z = z[:]
+    for y in range(0,len(z)):
+        Z[y] = sigmoid(z[y])
+    return Z
+    # return 1.0 / (1.0 + np.exp(-1 * z))
 
 def preprocess():
     """ Input:
@@ -211,19 +211,24 @@ def nnObjFunction(params, *args):
     # print("labels should be:", training_label)
     # prediction = nnPredict(w1, w2, training_data)
     # print("PREDICTION, THIS JUST IN!", prediction)
+    print("Starting hidden node value calculations\n")
     z = []
-    for i, image in enumerate(training_data):
+    for image in training_data:
         z_i = sigmoid(feedForwardSummation(w1, np.append(image, 1)))
         # add hiden bias
+        # print("zi value here before bias: ", z_i)
         z_i = np.append(z_i, 1)
+        # print("zi value here: ", z_i)
         z.append(z_i)
     z = np.array(z)
+    print("hidden node values: ", z)
 
     out = []
-    for j, node in enumerate(z):
+    for node in z:
         out_j = sigmoid(feedForwardSummation(w2, node))
         out.append(out_j)
     out = np.array(out)
+    print("output values: ", out)
 
 
     # error function objective val
