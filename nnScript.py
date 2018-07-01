@@ -213,14 +213,17 @@ def nnObjFunction(params, *args):
     # print("PREDICTION, THIS JUST IN!", prediction)
     print("Starting hidden node value calculations\n")
     z = []
+    z_no_hidden = []
     for image in training_data:
         z_i = sigmoid(feedForwardSummation(w1, np.append(image, 1)))
         # add hiden bias
         # print("zi value here before bias: ", z_i)
+        z_no_hidden.append(z_i)
         z_i = np.append(z_i, 1)
         # print("zi value here: ", z_i)
         z.append(z_i)
     z = np.array(z)
+    z_no_hidden = np.array(z_no_hidden)
     print("hidden node values: ", z)
 
     out = []
@@ -255,15 +258,20 @@ def nnObjFunction(params, *args):
 
     djw2 = np.matmul((out - yl).T, z)
 
-    djw1 = np.matmul(np.matmul(np.matmul((1 - z).T, z).T, np.matmul((out - yl).T, w2)).T, training_data)
+    w2_no_hidden = np.delete(w2, len(w2[0]) - 1, 1)
+    mat_1 = np.matmul((1 - z_no_hidden).T, z_no_hidden)
+    delta_x_w1 = np.matmul((out - yl), w2_no_hidden)
+    mat_1_x_mat_2 = np.matmul(mat_1, delta_x_w1.T)
+    djw1 = np.matmul(mat_1_x_mat_2, np.hstack((training_data,np.ones((training_data.shape[0],1)))))
 
     # regularization:
 
     reg_djw2 = (1 / n) * (djw2 + lambdaval * w2)
 
     reg_djw1 = (1 / n) * (djw1 + lambdaval * w1)
-
-    obj_grad = np.concatenate(reg_djw1.flatten(), reg_djw2.flatten(), 0)
+    print("regularizations: ", reg_djw1, reg_djw2)
+    reg_djw1.flatten()
+    obj_grad = np.concatenate((reg_djw1.flatten(), reg_djw2.flatten()), 0) 
     
     print(djw1, djw2)
 
