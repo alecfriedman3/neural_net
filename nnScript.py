@@ -30,6 +30,7 @@ def sigmoid(z):
     for y in range(0,len(z)):
         Z[y] = sigmoid(z[y])
     return Z
+    # return 1.0 / (1.0 + np.exp(-1.0 * z))
 
 def preprocess():
     """ Input:
@@ -129,9 +130,22 @@ def preprocess():
 
     # Feature selection
     # Your code here.
+    redundant_features_counts = np.zeros(784)
+    for image in test_data:
+        for j, feature_value in enumerate(image):
+            if feature_value == 0:
+                redundant_features_counts[j] += 1
+
+    wanted_features = [f for f in range(len(redundant_features_counts)) if redundant_features_counts[f] != len(test_data)]
+    def filterRedundancy(data):
+        new_data = np.array(list(map(lambda image: image[wanted_features], data)))
+        return new_data
+    
+    train_data = filterRedundancy(train_data)
+    validation_data = filterRedundancy(validation_data)
+    test_data = filterRedundancy(test_data)
 
     print('preprocess done')
-    print(train_size, test_size, validation_size)
 
     return train_data, train_label, validation_data, validation_label, test_data, test_label
 
@@ -181,6 +195,22 @@ def nnObjFunction(params, *args):
     obj_val = 0
 
     # Your code here
+    print("running nnobjfunc with weights: \n\nlenghts = ",len(w1),len(w2), len(w1[0]), len(w2[0]),"\n\nw1 = ", w1,"\n\nw2 = ", w2)
+
+    # for image in training_data:
+    # print("labels should be:", training_label)
+    # prediction = nnPredict(w1, w2, training_data)
+    # print("PREDICTION, THIS JUST IN!", prediction)
+
+    for i, image in enumerate(training_data):
+        print("training data point ", i)
+        proper_label = training_label[i]
+        prediction_labels_i = feedForwardPropogation(w1, w2, image)
+        prediction = np.argmax(prediction_labels_i) + 1
+        if proper_label != prediction:
+            print("we got a runner over here, expected ", proper_label, " was ", prediction)
+        elif proper_label == prediction:
+            print("all clear. index", i)
     #
     #
     #
@@ -216,68 +246,84 @@ def nnPredict(w1, w2, data):
 
     labels = np.array([])
     # Your code here
+    for image in data:
+        prediction_labels = feedForwardPropogation(w1, w2, image)
+        # print("PREDICTION----------------------------------------------------\n\n", prediction_labels, "\n\n")
+        labels = np.append(labels, np.argmax(prediction_labels) + 1)
+        # print("LABELS SO FAR!", labels)
 
     return labels
 
+def feedForwardPropogation(w1, w2, image):
+    def feedForwardSummation(weight, input_vector):
+        a = [0] * (len(weight))
+        for i, weight_i_vector in enumerate(weight):
+            weight_i_vector = weight[i]
+            for j, weight_i_j in enumerate(weight_i_vector):
+                a[i] += weight_i_j * input_vector[j]
+        return a
+    z = sigmoid(feedForwardSummation(w1, np.append(image, 1)))
+    labels = sigmoid(feedForwardSummation(w2, np.append(z, 1)))
+    return labels
 
 """**************Neural Network Script Starts here********************************"""
 
 train_data, train_label, validation_data, validation_label, test_data, test_label = preprocess()
 
-# #  Train Neural Network
+#  Train Neural Network
 
-# # set the number of nodes in input unit (not including bias unit)
-# n_input = train_data.shape[1]
+# set the number of nodes in input unit (not including bias unit)
+n_input = train_data.shape[1]
 
-# # set the number of nodes in hidden unit (not including bias unit)
-# n_hidden = 50
+# set the number of nodes in hidden unit (not including bias unit)
+n_hidden = 50
 
-# # set the number of nodes in output unit
-# n_class = 10
+# set the number of nodes in output unit
+n_class = 10
 
-# # initialize the weights into some random matrices
-# initial_w1 = initializeWeights(n_input, n_hidden)
-# initial_w2 = initializeWeights(n_hidden, n_class)
+# initialize the weights into some random matrices
+initial_w1 = initializeWeights(n_input, n_hidden)
+initial_w2 = initializeWeights(n_hidden, n_class)
 
-# # unroll 2 weight matrices into single column vector
-# initialWeights = np.concatenate((initial_w1.flatten(), initial_w2.flatten()), 0)
+# unroll 2 weight matrices into single column vector
+initialWeights = np.concatenate((initial_w1.flatten(), initial_w2.flatten()), 0)
 
-# # set the regularization hyper-parameter
-# lambdaval = 0
+# set the regularization hyper-parameter
+lambdaval = 0
 
-# args = (n_input, n_hidden, n_class, train_data, train_label, lambdaval)
+args = (n_input, n_hidden, n_class, train_data, train_label, lambdaval)
 
-# # Train Neural Network using fmin_cg or minimize from scipy,optimize module. Check documentation for a working example
+# Train Neural Network using fmin_cg or minimize from scipy,optimize module. Check documentation for a working example
 
-# opts = {'maxiter': 50}  # Preferred value.
+opts = {'maxiter': 50}  # Preferred value.
 
-# nn_params = minimize(nnObjFunction, initialWeights, jac=True, args=args, method='CG', options=opts)
+nn_params = minimize(nnObjFunction, initialWeights, jac=True, args=args, method='CG', options=opts)
 
-# # In Case you want to use fmin_cg, you may have to split the nnObjectFunction to two functions nnObjFunctionVal
-# # and nnObjGradient. Check documentation for this function before you proceed.
-# # nn_params, cost = fmin_cg(nnObjFunctionVal, initialWeights, nnObjGradient,args = args, maxiter = 50)
+# In Case you want to use fmin_cg, you may have to split the nnObjectFunction to two functions nnObjFunctionVal
+# and nnObjGradient. Check documentation for this function before you proceed.
+# nn_params, cost = fmin_cg(nnObjFunctionVal, initialWeights, nnObjGradient,args = args, maxiter = 50)
 
 
-# # Reshape nnParams from 1D vector into w1 and w2 matrices
-# w1 = nn_params.x[0:n_hidden * (n_input + 1)].reshape((n_hidden, (n_input + 1)))
-# w2 = nn_params.x[(n_hidden * (n_input + 1)):].reshape((n_class, (n_hidden + 1)))
+# Reshape nnParams from 1D vector into w1 and w2 matrices
+w1 = nn_params.x[0:n_hidden * (n_input + 1)].reshape((n_hidden, (n_input + 1)))
+w2 = nn_params.x[(n_hidden * (n_input + 1)):].reshape((n_class, (n_hidden + 1)))
 
-# # Test the computed parameters
+# Test the computed parameters
 
-# predicted_label = nnPredict(w1, w2, train_data)
+predicted_label = nnPredict(w1, w2, train_data)
 
-# # find the accuracy on Training Dataset
+# find the accuracy on Training Dataset
 
-# print('\n Training set Accuracy:' + str(100 * np.mean((predicted_label == train_label).astype(float))) + '%')
+print('\n Training set Accuracy:' + str(100 * np.mean((predicted_label == train_label).astype(float))) + '%')
 
-# predicted_label = nnPredict(w1, w2, validation_data)
+predicted_label = nnPredict(w1, w2, validation_data)
 
-# # find the accuracy on Validation Dataset
+# find the accuracy on Validation Dataset
 
-# print('\n Validation set Accuracy:' + str(100 * np.mean((predicted_label == validation_label).astype(float))) + '%')
+print('\n Validation set Accuracy:' + str(100 * np.mean((predicted_label == validation_label).astype(float))) + '%')
 
-# predicted_label = nnPredict(w1, w2, test_data)
+predicted_label = nnPredict(w1, w2, test_data)
 
-# # find the accuracy on Validation Dataset
+# find the accuracy on Validation Dataset
 
-# print('\n Test set Accuracy:' + str(100 * np.mean((predicted_label == test_label).astype(float))) + '%')
+print('\n Test set Accuracy:' + str(100 * np.mean((predicted_label == test_label).astype(float))) + '%')
