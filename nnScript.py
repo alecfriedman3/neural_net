@@ -323,7 +323,7 @@ def nnPredict(w1, w2, data):
         prediction_labels = sigmoid(np.dot(w2, np.append(z, 1)))
         # prediction_labels = feedForwardPropogation(w1, w2, image)
         # print("PREDICTION----------------------------------------------------\n\n", prediction_labels, "\n\n")
-        labels = np.append(labels, np.argmax(prediction_labels) + 1)
+        labels = np.append(labels, np.argmax(prediction_labels))
         # print("LABELS SO FAR!", labels)
 
     return labels
