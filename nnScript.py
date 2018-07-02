@@ -203,7 +203,7 @@ def nnObjFunction(params, *args):
 
     yl = []
     for l in training_label:
-        y = np.zeros(np.max(training_label) + 1)
+        y = np.zeros(int(np.max(training_label)) + 1)
         y[int(l)] = 1
         yl.append(y)
     yl = np.array(yl)
@@ -372,7 +372,7 @@ args = (n_input, n_hidden, n_class, train_data, train_label, lambdaval)
 opts = {'maxiter': 50}  # Preferred value.
 
 nn_params = minimize(nnObjFunction, initialWeights, jac=True, args=args, method='CG', options=opts)
-
+print("nn params", nn_params)
 # In Case you want to use fmin_cg, you may have to split the nnObjectFunction to two functions nnObjFunctionVal
 # and nnObjGradient. Check documentation for this function before you proceed.
 # nn_params, cost = fmin_cg(nnObjFunctionVal, initialWeights, nnObjGradient,args = args, maxiter = 50)
