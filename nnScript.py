@@ -203,7 +203,7 @@ def nnObjFunction(params, *args):
 
     yl = []
     for l in training_label:
-        y = np.zeros(10)
+        y = np.zeros(np.max(training_label) + 1)
         y[int(l)] = 1
         yl.append(y)
     yl = np.array(yl)
