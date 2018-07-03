@@ -6,6 +6,17 @@ from math import sqrt, exp
 # neural network utilities
 from nnFunctions import sigmoid, nnObjFunction, nnPredict
 
+import argparse
+import sys
+parser = argparse.ArgumentParser()
+parser.add_argument("-l", "--lambdaval", help="set lambda value for regularization", action="store")
+parser.add_argument("-n", "--nodes", help="set number of hidden nodes", action="store")
+parser.add_argument("-f", "--file", help="set output file", action="store")
+args = parser.parse_args()
+print(args)
+if args.file:
+    sys.stdout = open(args.file, 'w')
+
 
 def initializeWeights(n_in, n_out):
     """
@@ -150,7 +161,7 @@ train_data, train_label, validation_data, validation_label, test_data, test_labe
 n_input = train_data.shape[1]
 
 # set the number of nodes in hidden unit (not including bias unit)
-n_hidden = 50
+n_hidden = int(args.nodes) if args.nodes != None else 50
 
 # set the number of nodes in output unit
 n_class = 10
@@ -163,7 +174,7 @@ initial_w2 = initializeWeights(n_hidden, n_class)
 initialWeights = np.concatenate((initial_w1.flatten(), initial_w2.flatten()), 0)
 
 # set the regularization hyper-parameter
-lambdaval = 0
+lambdaval = int(args.lambdaval) if args.lambdaval != None else 0
 
 args = (n_input, n_hidden, n_class, train_data, train_label, lambdaval)
 
