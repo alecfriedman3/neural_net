@@ -17,6 +17,8 @@ print(args)
 if args.file:
     sys.stdout = open(args.file, 'w')
 
+selected_features = None
+
 
 def initializeWeights(n_in, n_out):
     """
@@ -146,6 +148,9 @@ def preprocess():
     train_data = filterRedundancy(train_data)
     validation_data = filterRedundancy(validation_data)
     test_data = filterRedundancy(test_data)
+    
+    global selected_features
+    selected_features = wanted_features
 
     print('preprocess done')
 
@@ -212,3 +217,13 @@ predicted_label = nnPredict(w1, w2, test_data)
 # find the accuracy on Validation Dataset
 
 print('\n Test set Accuracy:' + str(100 * np.mean((predicted_label == test_label).astype(float))) + '%')
+
+import pickle
+params = {
+    "w1": w1,
+    "w2": w2,
+    "selected_features": selected_features,
+    "n_hidden": n_hidden,
+    "lambda": lambdaval
+}
+pickle.dump(params, open( "params.pickle", "wb" ))
