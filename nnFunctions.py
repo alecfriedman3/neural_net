@@ -6,6 +6,7 @@ def sigmoid(z):
     return 1.0 / (1.0 + np.exp(-z))
 
 iteration = 0
+yl = None
 def nnObjFunction(params, *args):
     """% nnObjFunction computes the value of objective function (negative log 
     %   likelihood error function with regularization) given the parameters 
@@ -44,7 +45,7 @@ def nnObjFunction(params, *args):
     %     w2(i, j) represents the weight of connection from unit j in hidden 
     %     layer to unit i in output layer."""
     global iteration
-    print("iteration: ", iteration)
+    # print("iteration: ", iteration)
     iteration += 1
 
     n_input, n_hidden, n_class, training_data, training_label, lambdaval = args
@@ -54,63 +55,44 @@ def nnObjFunction(params, *args):
     obj_val = 0
 
     # Your code here
-    yl = []
-    for l in training_label:
-        y = np.zeros(int(np.max(training_label)) + 1)
-        y[int(l)] = 1
-        yl.append(y)
-    yl = np.array(yl)
+    global yl
+    if not isinstance(yl, np.ndarray):
+        yl = []
+        for l in training_label:
+            y = np.zeros(int(np.max(training_label)) + 1)
+            y[int(l)] = 1
+            yl.append(y)
+        yl = np.array(yl)
 
     n = len(yl)
 
-    # print("Starting hidden node value calculations\n")
-    z = []
-    z_no_hidden = []
-    for image in training_data:
-        z_i = sigmoid(np.dot(w1, np.append(image, 1)))
-        # add hiden bias
-        z_no_hidden.append(z_i)
-        z_i = np.append(z_i, 1)
-        z.append(z_i)
-    z = np.array(z)
-    z_no_hidden = np.array(z_no_hidden)
+    # print("Starting hidden node value calculations")
+
+    train_data_with_bias = np.hstack((training_data, np.ones((training_data.shape[0],1))))
+    z_no_bias = sigmoid(np.matmul(train_data_with_bias, w1.T))
+    z = np.hstack((z_no_bias, np.ones((z_no_bias.shape[0],1))))
     # print("hidden node values complete")
 
-    out = []
-    for node in z:
-        out_j = sigmoid(np.dot(w2, node))
-        out.append(out_j)
-    out = np.array(out)
+    out = sigmoid(np.matmul(z, w2.T))
     # print("output values complete")
 
+    obj_val = (-1 / n) * np.sum(np.multiply(yl, np.log(out)) + np.multiply((1 - yl), np.log(1 - out)))
+    print("iteration: ", iteration, " obj val:", obj_val)
 
-    # error function objective val
-    for i, y_i in enumerate(yl):
-        for l, y_i_l in enumerate(y_i):
-            obj_val += y_i_l * np.log(out[i][l]) + (1 - y_i_l) * np.log(1 - out[i][l])
-    obj_val = (-1 / n) * obj_val
-
-    # regularization objective val
-    reg_obj_val = 0
-    for w1j in w1:
-        for w1jp in w1j:
-            reg_obj_val += w1jp ** 2
-    for w2l in w2:
-        for w2lj in w2l:
-            reg_obj_val += w2lj ** 2
-    reg_obj_val = ( lambdaval / (2 * n) ) * reg_obj_val
-
+    reg_obj_val = (lambdaval / (2 * n)) * (np.sum(w1**2) + np.sum(w2**2))
     obj_val += reg_obj_val
-    
+    # print("regularization obj val complete")
 
     # Gradient descent:
     djw2 = np.matmul((out - yl).T, z)
 
-    w2_no_hidden = np.delete(w2, len(w2[0]) - 1, 1)
-    mat_1 = np.multiply((1 - z_no_hidden), z_no_hidden)
+    # w2_no_hidden = np.delete(w2, len(w2[0]) - 1, 1)
+    w2_no_hidden = np.delete(w2, n_hidden - 1, 1)
+    mat_1 = np.multiply((1 - z_no_bias), z_no_bias)
     delta_x_w1 = np.matmul((out - yl), w2_no_hidden)
     mat_1_x_mat_2 = np.multiply(mat_1, delta_x_w1)
-    djw1 = np.matmul(mat_1_x_mat_2.T, np.hstack((training_data,np.ones((training_data.shape[0],1)))))
+    djw1 = np.matmul(mat_1_x_mat_2.T, train_data_with_bias)
+    # print("gradient descent complete")
 
     # regularization:
     reg_djw2 = (1 / n) * (djw2 + lambdaval * w2)
@@ -118,7 +100,7 @@ def nnObjFunction(params, *args):
 
     obj_grad = np.concatenate((reg_djw1.flatten(), reg_djw2.flatten()), 0) 
     
-    # print("regularizations complete)
+    # print("regularized gradient descent complete")
     #
     #
     #
